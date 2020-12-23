@@ -10,6 +10,7 @@ import SwiftUI
 struct MainView: View {
     @Binding var showMenu : Bool
     @Binding var index : String
+    @Binding var isDesignModeEnable : Bool
     
     var body: some View {
         NavigationView {
@@ -22,6 +23,7 @@ struct MainView: View {
                     HStack{
                         VStack {
                             Button(action: {
+                                isDesignModeEnable = true
                                 self.showMenu = false
                                 self.index = "Camera"
                             }) {

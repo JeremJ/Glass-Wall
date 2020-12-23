@@ -22,6 +22,7 @@ struct ContentView : View {
     @State private var index = "History"
     @State private var captureScene = false
     @State private var clearScreen = false
+    @State private var resetView = false
     
     private var models: [Model] = {
         let filemanager = FileManager.default
@@ -48,7 +49,9 @@ struct ContentView : View {
                                 captureScene: $captureScene,
                                 clearScreen: $clearScreen)
                     .edgesIgnoringSafeArea(.all)
-                NavigationMenu(captureScene: $captureScene, clearScreen: $clearScreen, index: $index)
+                NavigationMenu(captureScene: $captureScene, clearScreen: $clearScreen, index: $index,
+                               isDesignModeEnable: $isDesignModeEnable,
+                               isPlacementEnabled: $isPlacementEnabled)
                 if self.isDesignModeEnable {
                     if self.isPlacementEnabled {
                         PlacementButtonsView(isPlacementEnabled: self.$isPlacementEnabled,
@@ -72,12 +75,15 @@ struct ContentView : View {
                 }
             })
         } else {
-            MainView(showMenu: $showMenu, index: $index)
+            MainView(showMenu: $showMenu, index: $index, isDesignModeEnable: $isDesignModeEnable)
         }
     }
 }
 
 struct ARViewContainer: UIViewRepresentable {
+    
+    static let panelWidth: Float = 0.6
+    static let panelDepth: Float = 0.4
     
     @Binding var modelConfirmedForPlacement: Model?
     @Binding var isDesigningEnable: Bool
@@ -85,12 +91,8 @@ struct ARViewContainer: UIViewRepresentable {
     @Binding var clearScreen: Bool
     private let firebaseService: FirebaseService = FirebaseService()
     
-    static let panelWidth: Float = 0.6
-    static let panelDepth: Float = 0.6
-    
     func makeUIView(context: Context) -> ARView {
         let focusView = FocusARView(frame: .zero)
-        
         return focusView
     }
     
@@ -115,9 +117,12 @@ struct ARViewContainer: UIViewRepresentable {
         } else if self.clearScreen {
             self.undoChanges(uiView: uiView, createdAnchor: createdAnchor[0])
         } else {
+            let focusEntity = extractFocusEntityAnchor(uiView: uiView)
+            if focusEntity.count == 1 {
+                uiView.scene.removeAnchor(focusEntity[0])
+            }
             changeElementStyle(uiView: createdAnchor)
         }
-        
     }
     
     func undoChanges(uiView: ARView, createdAnchor: HasAnchoring) {
@@ -128,7 +133,13 @@ struct ARViewContainer: UIViewRepresentable {
         }
     }
     
+    func extractFocusEntityAnchor(uiView: ARView) ->  Array<HasAnchoring> {
+        return uiView.scene.anchors
+            .filter({$0.name == "FocusEntity"})
+    }
+    
     func createDesignElement(uiView: ARView) {
+        print("anchors: \(uiView.scene.anchors)")
         if self.modelConfirmedForPlacement != nil {
             let anchor = AnchorEntity(plane: .any)
             let box = MeshResource.generatePlane(width: ARViewContainer.panelWidth,
@@ -175,7 +186,6 @@ struct PlacementButtonsView: View {
     @Binding var modelConfirmedForPlacement: Model?
     var body: some View {
         HStack {
-            //Cancel
             Button(action: {
                 print("Cancel")
                 self.resetPlacementParams()
@@ -188,8 +198,6 @@ struct PlacementButtonsView: View {
                     .cornerRadius(30)
                     .padding(10)
             }
-            //confirm
-            
             Button(action: {
                 print("Confirm")
                 self.modelConfirmedForPlacement = self.selectedModel
@@ -243,6 +251,8 @@ struct NavigationMenu: View {
     @Binding var captureScene: Bool
     @Binding var clearScreen: Bool
     @Binding var index: String
+    @Binding var isDesignModeEnable: Bool
+    @Binding var isPlacementEnabled: Bool
     var body: some View {
         HStack(alignment: .top) {
             Button(action: {
@@ -272,6 +282,8 @@ struct NavigationMenu: View {
         
         HStack(alignment: .top) {
             Button(action: {
+                self.isDesignModeEnable = true
+                self.isPlacementEnabled = false
                 self.index = "History"
             }) {
                 Spacer()
