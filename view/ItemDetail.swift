@@ -44,7 +44,7 @@ struct Detail: View {
                     
                     AnimatedImage(url: URL(string: selectedItem.image))
                         .resizable()
-                        .frame(width: 320, height: 420)
+                        .aspectRatio(contentMode: .fit)
                         .matchedGeometryEffect(id: "image\(selectedItem.id)", in: animation)
                         .padding()
 

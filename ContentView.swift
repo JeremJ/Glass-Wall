@@ -22,7 +22,6 @@ struct ContentView : View {
     @State private var index = "History"
     @State private var captureScene = false
     @State private var clearScreen = false
-    @State private var resetView = false
     
     private var models: [Model] = {
         let filemanager = FileManager.default
@@ -113,6 +112,9 @@ struct ARViewContainer: UIViewRepresentable {
                 self.firebaseService.saveNewPanel(image: image,
                                                   width: createdAnchor[0].children[0].scale[0] * ARViewContainer.panelWidth,
                                                   depth: createdAnchor[0].children[0].scale[1] * ARViewContainer.panelDepth)
+                DispatchQueue.main.async {
+                    self.captureScene = false
+                }
             })
         } else if self.clearScreen {
             self.undoChanges(uiView: uiView, createdAnchor: createdAnchor[0])

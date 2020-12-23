@@ -14,7 +14,7 @@ class FirebaseService {
     private let storage = Storage.storage().reference(forURL: "gs://glasswall-b5078.appspot.com")
     
     public func saveNewPanel(image: UIImage?, width: Float, depth: Float) {
-        guard let selectedImage = image?.jpegData(compressionQuality: 0.4) else
+        guard let selectedImage = image?.jpegData(compressionQuality: 0.8) else
         {return}
         let id = UUID.init().uuidString
         var panel: Dictionary<String, Any> = [
